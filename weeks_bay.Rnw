@@ -1,0 +1,475 @@
+\documentclass[letterpaper,12pt]{article}
+\usepackage[top=1in,bottom=1in,left=1in,right=1in]{geometry}
+\usepackage{pdflscape}
+\usepackage{fullpage}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.path='M:/docs/figs/', fig.align='center', fig.show='hold',message=F,echo=F,results='asis',dev='pdf',dev.args=list(family='serif'),fig.pos='!ht',warning=F)
+options(replace.assign=TRUE,width=90)
+@
+
+\begin{document}
+\setlength{\parindent}{0in}
+\setlength{\parskip}{5mm}
+
+<<wb_prop_do,fig.height=10,fig.width=8,fig.cap='Observed trends in dissolved oxygen for Weeks Bay proper.',cache=T>>=
+
+setwd('M:/wq_models/BP/')
+
+load('wksbay_wb.RData')
+
+dat<-wksbay_wb
+
+#####
+library(gridExtra)
+library(ggplot2)
+library(reshape)
+
+#line plots by day of year 
+to.plo<-aggregate(DO_mgl~day,dat,
+  function(x) c(quantile(x,0.05),quantile(x,0.50),quantile(x,0.95)))
+to.plo<-as.data.frame(as.matrix(to.plo,ncol=4))
+to.plo<-melt(to.plo,id.var='day')
+to.plo$value<-as.numeric(as.character(to.plo$value))
+
+ylabs<-expression(paste('DO',' (mg',l^-1,')'))
+
+p1<-ggplot(to.plo,aes(x=as.numeric(day),y=value,group=variable,colour=variable)) +
+  geom_line(data=to.plo) + 
+  geom_abline(slope=0,intercept=2,linetype=2) +
+  scale_colour_manual(
+    name=element_blank(),
+    values=c('blue','red','blue'),
+    labels=c('95%','Median','5%')
+      ) +
+  scale_x_continuous(name='Day of year') +
+  scale_y_continuous(name=ylabs) + 
+  theme_bw() +
+  theme(axis.ticks.x=element_blank()) 
+
+#boxplots by month
+fill.dat<-melt(unlist(lapply(split(dat,dat$mo),
+  function(x) median(x$DO_mgl,na.rm=T))))
+fill.dat<-data.frame(
+  mo=row.names(fill.dat),
+  Median=fill.dat[,1]
+  )
+to.plo<-merge(dat,fill.dat,by.x=c('mo'))
+  
+p2<-ggplot(to.plo,aes(x=mo,y=DO_mgl,fill=Median)) + 
+  geom_boxplot() + 
+  geom_abline(slope=0,intercept=2,linetype=2) +
+  scale_x_discrete(
+    name='Month',
+    labels=strsplit('JFMAMJJASOND','')[[1]]
+    ) +
+  scale_y_continuous(name=ylabs,limits=c(0,20)) + 
+  scale_fill_continuous(low='tomato',high='lightblue') +
+  theme_bw()
+
+#boxplots by year
+fill.dat<-melt(unlist(lapply(split(dat,dat$yr),
+  function(x) median(x$DO_mgl,na.rm=T))))
+fill.dat<-data.frame(
+  mo=row.names(fill.dat),
+  Median=fill.dat[,1]
+  )
+to.plo<-merge(dat,fill.dat,by.x=c('yr'))
+  
+p3<-ggplot(to.plo,aes(x=yr,y=DO_mgl,fill=Median)) + 
+  geom_boxplot() + 
+  geom_abline(slope=0,intercept=2,linetype=2) +
+  scale_x_discrete(
+    name='Year'
+    ) +
+  scale_y_continuous(name=ylabs,limits=c(0,20)) + 
+  scale_fill_continuous(low='tomato',high='lightblue') +
+  theme_bw()
+
+#arrange nicely, this is ridiculous
+gA <- ggplotGrob(p1)
+gB <- ggplotGrob(p2)
+gC<-ggplotGrob(p3)
+maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5],gC$widths[2:5])
+gA$widths[2:5] <- as.list(maxWidth)
+gB$widths[2:5] <- as.list(maxWidth)
+gC$widths[2:5] <- as.list(maxWidth)
+
+grid.arrange(gA, gB, gC, ncol=1)
+
+@
+
+<<wb_mid_do,fig.height=10,fig.width=8,fig.cap='Observed trends in dissolved oxygen for the mid bay portion of Weeks Bay.',cache=T>>=
+
+setwd('M:/wq_models/BP/')
+
+load('wksbay_mb.RData')
+
+dat<-wksbay_mb
+
+#####
+library(gridExtra)
+library(ggplot2)
+library(reshape)
+
+#line plots by day of year 
+to.plo<-aggregate(DO_mgl~day,dat,
+  function(x) c(quantile(x,0.05),quantile(x,0.50),quantile(x,0.95)))
+to.plo<-as.data.frame(as.matrix(to.plo,ncol=4))
+to.plo<-melt(to.plo,id.var='day')
+to.plo$value<-as.numeric(as.character(to.plo$value))
+
+ylabs<-expression(paste('DO',' (mg',l^-1,')'))
+
+p1<-ggplot(to.plo,aes(x=as.numeric(day),y=value,group=variable,colour=variable)) +
+  geom_line(data=to.plo) + 
+  geom_abline(slope=0,intercept=2,linetype=2) +
+  scale_colour_manual(
+    name=element_blank(),
+    values=c('blue','red','blue'),
+    labels=c('95%','Median','5%')
+      ) +
+  scale_x_continuous(name='Day of year') +
+  scale_y_continuous(name=ylabs) + 
+  theme_bw() +
+  theme(axis.ticks.x=element_blank()) 
+
+#boxplots by month
+fill.dat<-melt(unlist(lapply(split(dat,dat$mo),
+  function(x) median(x$DO_mgl,na.rm=T))))
+fill.dat<-data.frame(
+  mo=row.names(fill.dat),
+  Median=fill.dat[,1]
+  )
+to.plo<-merge(dat,fill.dat,by.x=c('mo'))
+  
+p2<-ggplot(to.plo,aes(x=mo,y=DO_mgl,fill=Median)) + 
+  geom_boxplot() + 
+  geom_abline(slope=0,intercept=2,linetype=2) +
+  scale_x_discrete(
+    name='Month',
+    labels=strsplit('JFMAMJJASOND','')[[1]]
+    ) +
+  scale_y_continuous(name=ylabs,limits=c(0,20)) + 
+  scale_fill_continuous(low='tomato',high='lightblue') +
+  theme_bw()
+
+#boxplots by year
+fill.dat<-melt(unlist(lapply(split(dat,dat$yr),
+  function(x) median(x$DO_mgl,na.rm=T))))
+fill.dat<-data.frame(
+  mo=row.names(fill.dat),
+  Median=fill.dat[,1]
+  )
+to.plo<-merge(dat,fill.dat,by.x=c('yr'))
+  
+p3<-ggplot(to.plo,aes(x=yr,y=DO_mgl,fill=Median)) + 
+  geom_boxplot() + 
+  geom_abline(slope=0,intercept=2,linetype=2) +
+  scale_x_discrete(
+    name='Year'
+    ) +
+  scale_y_continuous(name=ylabs,limits=c(0,20)) + 
+  scale_fill_continuous(low='tomato',high='lightblue') +
+  theme_bw()
+
+#arrange nicely, this is ridiculous
+gA <- ggplotGrob(p1)
+gB <- ggplotGrob(p2)
+gC<-ggplotGrob(p3)
+maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5],gC$widths[2:5])
+gA$widths[2:5] <- as.list(maxWidth)
+gB$widths[2:5] <- as.list(maxWidth)
+gC$widths[2:5] <- as.list(maxWidth)
+
+grid.arrange(gA, gB, gC, ncol=1)
+
+@
+
+\begin{landscape}
+\centering\vspace*{\fill}
+<<weeks_do_cont,cache=T,fig.height=6,fig.width=8.5,fig.cap='Dissolved oxygen profiles for Weeks Bay proper and mid bay by day of year and hour of day.',out.width='0.9\\linewidth'>>=
+library(reshape)
+
+setwd('M:/wq_models/BP/')
+
+load('wksbay_wb.RData')
+load('wksbay_mb.RData')
+dat1<-wksbay_wb
+dat2<-wksbay_mb
+
+#for multiple filled contour plots on same window
+source('M:/r_code/filled_contour3.r')
+
+#bay proper
+to.plo1<-dat1[,names(dat1) %in% c('Time','day','DO_mgl')]
+to.plo1$Time<-as.numeric(strftime(to.plo1$Time,'%H'))
+
+x.val1<-sort(as.numeric(unique(to.plo1$day)))
+y.val1<-sort(as.numeric(unique(to.plo1$Time)))
+
+to.plo1<-cast(to.plo1,Time~day,value='DO_mgl',fun=function(x) mean(x,na.rm=T))
+to.plo1<-t(as.matrix(to.plo1))
+
+#mid bay
+to.plo2<-dat2[,names(dat2) %in% c('Time','day','DO_mgl')]
+to.plo2$Time<-as.numeric(strftime(to.plo2$Time,'%H'))
+
+x.val2<-sort(as.numeric(unique(to.plo2$day)))
+y.val2<-sort(as.numeric(unique(to.plo2$Time)))
+
+to.plo2<-cast(to.plo2,Time~day,value='DO_mgl',fun=function(x) mean(x,na.rm=T))
+to.plo2<-t(as.matrix(to.plo2))
+
+#initiate plots
+
+plot.new()
+
+levs<-10
+in.col<-colorRampPalette(c('red','lightgreen','blue'))
+
+#first plot
+par(new = "TRUE",plt = c(0.1,0.85,0.60,0.95),las = 1,cex.axis = 1)
+
+filled.contour3(x.val1,y.val1,z=to.plo1,color.palette=in.col,
+  ylab='',xlab='',nlevels=levs,
+  key.title=title(main=ylabs,line=1,cex.main=1))
+text(x=5,y=21,'Weeks Bay - Proper',adj=0)
+
+#first legend
+par(new = "TRUE",plt = c(0.9,0.94,0.6,0.95),las = 1,cex.axis = 1)
+filled.legend(x.val1,y.val1,to.plo1,color=in.col,xlab = "",nlevels=levs,
+  ylab = "",xlim = c(min(xintercepts),max(xintercepts)),
+  ylim = c(min(slopes),max(slopes)))
+filled.legend(x.val1,y.val1,to.plo1,color=in.col,xlab = "",nlevels=levs,
+  ylab = "",xlim = c(min(xintercepts),max(xintercepts)),
+  ylim = c(min(slopes),max(slopes)))
+
+#second plot
+par(new = "TRUE",plt = c(0.1,0.85,0.15,0.5),las = 1,cex.axis = 1)
+
+filled.contour3(x.val2,y.val2,z=to.plo2,color.palette=in.col,
+  ylab='',xlab='',nlevels=levs,
+  key.title=title(main=ylabs,line=1,cex.main=1))
+text(x=5,y=21,'Weeks Bay - Mid Bay',adj=0)
+
+#second legend
+par(new = "TRUE",plt = c(0.9,0.94,0.15,0.5),las = 1,cex.axis = 1)
+filled.legend(x.val2,y.val2,to.plo2,color=in.col,xlab = "",nlevels=levs,
+  ylab = "",xlim = c(min(xintercepts),max(xintercepts)),
+  ylim = c(min(slopes),max(slopes)))
+filled.legend(x.val2,y.val2,to.plo2,color=in.col,xlab = "",nlevels=levs,
+  ylab = "",xlim = c(min(xintercepts),max(xintercepts)),
+  ylim = c(min(slopes),max(slopes)))
+ylabs<-expression(paste('DO',' (mg',l^-1,')'))
+title(ylabs,line=1.5,cex.main=1)
+
+#Add some figure labels
+mtext('Hour of day',side=2,line=-1.5,outer=T,las=3,cex=1.5)
+mtext('Day of year',side=1,line=-1.5,outer=T,cex=1.5)
+
+@
+\vfill
+\end{landscape}
+
+<<weeks_cdf,fig.height=9,fig.width=7,cache=T,fig.cap='Cumulative distribution plots of dissolved oxygen by month and station.'>>=
+rm(list=ls())
+
+library(reshape)
+library(ggplot2)
+
+setwd('M:/wq_models/BP/')
+
+load('wksbay_wb.RData')
+load('wksbay_mb.RData')
+dat1<-wksbay_wb
+dat2<-wksbay_mb
+
+#first plot
+by.mo<-split(dat1,dat1$mo)
+to.plo<-lapply(by.mo,
+  function(x){
+    tmp<-ecdf(x$DO_mgl)
+    x.vals<-knots(tmp)
+    y.vals<-tmp(x.vals)
+    data.frame(DO=x.vals,perc=y.vals)
+    }
+  )
+to.plo<-melt.list(to.plo,id.var=c('DO','perc'))
+mo.names<-c('January','February',
+  'March','April','May','June','July','August','September','October',
+  'November','December')
+to.plo$L1<-factor(to.plo$L1,levels=mo.names,labels=mo.names)
+
+ylabs<-expression(paste('DO',' (mg',l^-1,')'))
+
+p1<-ggplot(to.plo,aes(x=DO,y=perc,colour=L1,group=L1)) + 
+  geom_line(size=1.5) + 
+  scale_x_continuous(ylabs,limits=c(0,15)) +
+  scale_y_continuous('Cumulative distribution') + 
+  theme_bw() +
+  theme(legend.title=element_blank()) + 
+  geom_vline(xintercept=2,linetype='dashed') + 
+  ggtitle('Weeks Bay - Proper')
+
+#second plot
+by.mo<-split(dat2,dat2$mo)
+to.plo<-lapply(by.mo,
+  function(x){
+    tmp<-ecdf(x$DO_mgl)
+    x.vals<-knots(tmp)
+    y.vals<-tmp(x.vals)
+    data.frame(DO=x.vals,perc=y.vals)
+    }
+  )
+to.plo<-melt.list(to.plo,id.var=c('DO','perc'))
+mo.names<-c('January','February',
+  'March','April','May','June','July','August','September','October',
+  'November','December')
+to.plo$L1<-factor(to.plo$L1,levels=mo.names,labels=mo.names)
+
+ylabs<-expression(paste('DO',' (mg',l^-1,')'))
+
+p2<-ggplot(to.plo,aes(x=DO,y=perc,colour=L1,group=L1)) + 
+  geom_line(size=1.5) + 
+  scale_x_continuous(ylabs,limits=c(0,15)) +
+  scale_y_continuous('Cumulative distribution') + 
+  theme_bw() +
+  theme(legend.title=element_blank()) + 
+  geom_vline(xintercept=2,linetype='dashed') + 
+  ggtitle('Weeks Bay - Mid Bay')
+
+gA <- ggplotGrob(p1)
+gB <- ggplotGrob(p2)
+
+maxWidth = grid::unit.pmax(gA$widths[2:5], gB$widths[2:5])
+gA$widths[2:5] <- as.list(maxWidth)
+gB$widths[2:5] <- as.list(maxWidth)
+
+grid.arrange(gA, gB, ncol=1)
+
+@
+
+<<hyp_cum,cache=T,include=F>>=
+library(reshape)
+library(ggplot2)
+library(zoo) #for moving averages
+
+setwd('M:/wq_models/BP/')
+
+load('wksbay_wb.RData')
+load('wksbay_mb.RData')
+dat1<-wksbay_wb
+dat2<-wksbay_mb
+
+hyp.day.fun<-function(dat,win.wid=4){
+  
+  require(zoo)
+
+  #create continuous time vector in fifteen minute intervals
+  time<-seq(dat$Time[1],dat$Time[nrow(dat)],by=15*60)
+  dat<-merge(data.frame(Time=time),dat,by='Time',all.x=T)
+  
+  win.wid<-4
+  dat_ma<-rollapply(
+    dat$DO_mgl,
+    win.wid,
+    function(x){
+      tmp<-na.omit(x)
+      if(length(tmp)<1) return(0)
+      else{
+        if(sum((tmp<2)==F)>0) return(0)
+        else 1
+        }
+      },
+    fill=NA,
+    align='right'
+    )
+  
+  dat$ma<-dat_ma
+  dat$date<-strftime(dat$Time,format='%Y-%m-%d')
+  
+  hyp.days<-lapply(
+    split(dat,dat$date),
+    function(x){ 
+      if(1 %in% x$ma) 1
+      else 0
+      }
+    )
+  hyp.days<-data.frame(hyp=unlist(hyp.days))
+  hyp.days$cum_ma<-cumsum(hyp.days$hyp)
+  hyp.days<-data.frame(
+    Date=row.names(hyp.days),
+    hyp.days,
+    row.names=1:nrow(hyp.days)
+    )
+  hyp.days$Date<-as.POSIXct(hyp.days$Date,format='%Y-%m-%d')
+  
+  return(hyp.days)
+
+  }
+
+#get site results
+hyp.wb<-hyp.day.fun(dat1)
+hyp.mb<-hyp.day.fun(dat2)
+@
+
+<<cum_days,fig.height=4.5,fig.width=6,cache=T,fig.cap='Cumulative number of days when DO was $<$ 2 mg L$^{-1}$ for at least one hour at Weeks Bay Proper and Mid Bay sites.  Sampling began in October 1995 for Bay Proper and April 2003 for Mid Bay.'>>=
+#cumulative days
+to.plo<-rbind(
+  data.frame(Site=rep('Bay Proper',nrow(hyp.wb)),hyp.wb),
+  data.frame(Site=rep('Mid Bay',,nrow(hyp.mb)),hyp.mb)
+  )
+
+ggplot(to.plo,aes(x=Date,y=cum_ma,group=Site,colour=Site)) + 
+  geom_line() +
+  scale_y_continuous(name='Cumulative days with hypoxia') +
+  theme_bw()
+@
+
+<<cum_days_yr,fig.height=8,fig.width=7,cache=T,fig.cap='Number of days when DO was $<$ 2 mg L$^{-1}$ for at least one hour at Weeks Bay Proper and Mid Bay sites grouped by year.  Sampling began in October 1995 for Bay Proper and April 2003 for Mid Bay.'>>=
+#cumulative days by month
+to.plo<-rbind(
+  data.frame(Site=rep('Bay Proper',nrow(hyp.wb)),hyp.wb),
+  data.frame(Site=rep('Mid Bay',,nrow(hyp.mb)),hyp.mb)
+  )
+to.plo$Month<-strftime(to.plo$Date,'%m')
+to.plo$Year<-strftime(to.plo$Date,'%Y')
+to.plo<-aggregate(hyp~Month+Year+Site,data=to.plo,sum)
+
+ggplot(to.plo,aes(x=Month,y=hyp,group=Site,fill=Year)) + 
+  geom_bar(stat='identity') +
+  facet_grid(Year~Site) + 
+  theme_bw() +
+  theme(
+    legend.position='none',
+    axis.text=element_text(size=6)
+    ) +
+  scale_y_continuous(name='Number of days with hypoxia')
+
+@
+
+<<cum_days_mo,fig.height=8,fig.width=7,cache=T,fig.cap='Number of days when DO was $<$ 2 mg L$^{-1}$ for at least one hour at Weeks Bay Proper and Mid Bay sites grouped by month.  Sampling began in October 1995 for Bay Proper and April 2003 for Mid Bay.'>>=
+#cumulative days by month
+to.plo<-rbind(
+  data.frame(Site=rep('Bay Proper',nrow(hyp.wb)),hyp.wb),
+  data.frame(Site=rep('Mid Bay',,nrow(hyp.mb)),hyp.mb)
+  )
+to.plo$Month<-strftime(to.plo$Date,'%m')
+to.plo$Year<-strftime(to.plo$Date,'%Y')
+to.plo<-aggregate(hyp~Month+Year+Site,data=to.plo,sum)
+
+ggplot(to.plo,aes(x=Year,y=hyp,group=Site,fill=Month)) + 
+  geom_bar(stat='identity') +
+  facet_grid(Month~Site) + 
+  theme_bw() +
+  theme(
+    legend.position='none',
+    axis.text=element_text(size=6)
+    ) +
+  scale_y_continuous(name='Number of days with hypoxia')
+@
+
+\end{document}

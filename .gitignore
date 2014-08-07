@@ -1,0 +1,5 @@
+.Rproj.user
+.Rhistory
+*.RData
+cache/*
+log.txt
