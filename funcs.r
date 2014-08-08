@@ -1000,31 +1000,16 @@ tide.fun <- function(time.in, waves.in, scl.up = 4, all = F){
 ######
 # calculate number of anomolous estimates from nem output
 # 'nem.in' is output from 'nem.fun'
-# output is data.frame of percent of daily estimates that are anom, 
-# mean anom value, and mean non-anom value
-# done separately for Pg and RT, where anom for Pg is -, and Rt is +
-anoms.fun<-function(nem.in){
+# 'pgvar' and 'rtvar' are character strings of metab values to use
+anoms.fun <- function(nem.in, pgvar = 'Pg', rtvar = 'Rt') {
   
-  # pg anoms
-  Pg <- nem.in$Pg
-  Pg_anom <- Pg < 0
-  Pg_anom_mean <- mean(Pg[Pg_anom], na.rm = T)
-  Pg_regs_mean <- mean(Pg[!Pg_anom], na.rm = T)
+  Pg <- nem.in[, pgvar]
+  Pg <- sum(Pg <= 0,na.rm = T)/length(na.omit(Pg))
+  Rt <- nem.in[, rtvar]
+  Rt <- sum(Rt >= 0,na.rm = T)/length(na.omit(Rt))
   
-  # rt anoms
-  Rt <- nem.in$Rt
-  Rt_anom <- Rt > 0
-  Rt_anom_mean <- mean(Rt[Rt_anom], na.rm = T)
-  Rt_regs_mean <- mean(Rt[!Rt_anom], na.rm = T)
-
-  # create output
-  out <- cbind(
-    c(Pg_anom_mean, Pg_regs_mean),
-    c(Rt_anom_mean, Rt_regs_mean)
-    )
-
-  out <- data.frame(out, row.names = c('anom_mean' , 'regs_mean'))
-  names(out) <- c('Pg', 'Rt')
+  out <- data.frame(Pg,Rt)
+  names(out) <- c(pgvar, rtvar)
   
   return(out)
   
